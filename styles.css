@@ -1,35 +1,234 @@
-body {
-  margin: 0;
-  background: #070707;
-  color: #fff;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+/* BASH TV Fighters — GitHub Pages CSS */
+:root{
+  --bash-bg:#070707;
+  --bash-panel:#0f0f0f;
+  --bash-panel2:#141414;
+  --bash-border:rgba(255,255,255,.10);
+  --bash-text:rgba(255,255,255,.92);
+  --bash-muted:rgba(255,255,255,.65);
+  --bash-maroon:#370000;
 }
 
-.bash-title {
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  margin: 24px;
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  background:var(--bash-bg);
+  color:var(--bash-text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
 }
 
-.bash-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
-  gap: 14px;
-  padding: 24px;
+.bash-container{
+  width:min(1200px, 100%);
+  margin:0 auto;
+  padding:0 18px;
 }
 
-.bash-card {
-  background: #111;
-  border-radius: 14px;
-  overflow: hidden;
-  cursor: pointer;
+.bash-hero{
+  background: linear-gradient(180deg, rgba(55,0,0,.65), rgba(0,0,0,0));
+  padding: 48px 0 22px;
+  border-bottom: 1px solid var(--bash-border);
 }
 
-.bash-photo {
-  width: 100%;
+.bash-title{
+  margin:0 0 6px;
+  font-size: clamp(28px, 4vw, 42px);
+  letter-spacing:.5px;
+  text-transform:uppercase;
+}
+.bash-subtitle{
+  margin:0 0 18px;
+  color:var(--bash-muted);
+}
+
+.bash-controls{
+  display:grid;
+  grid-template-columns: 1.6fr 1fr 1fr;
+  gap:12px;
+}
+@media (max-width: 860px){
+  .bash-controls{ grid-template-columns: 1fr; }
+}
+
+.bash-field{ display:flex; flex-direction:column; gap:6px; }
+.bash-label{
+  font-size:12px;
+  color:var(--bash-muted);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.bash-input,
+.bash-select{
+  border:1px solid var(--bash-border);
+  background: rgba(255,255,255,.04);
+  color:var(--bash-text);
+  border-radius:12px;
+  padding:12px 12px;
+  outline:none;
+}
+.bash-input:focus,
+.bash-select:focus{
+  border-color: rgba(255,255,255,.22);
+}
+
+.bash-section{ padding: 18px 0 44px; }
+
+.bash-tabs{
+  display:flex;
+  gap:10px;
+  margin: 12px 0 14px;
+}
+.bash-tab{
+  border:1px solid var(--bash-border);
+  background: rgba(255,255,255,.04);
+  color:var(--bash-text);
+  border-radius:999px;
+  padding:10px 14px;
+  cursor:pointer;
+}
+.bash-tab.is-active{
+  background: rgba(55,0,0,.65);
+  border-color: rgba(55,0,0,.85);
+}
+
+.bash-status{
+  color:var(--bash-muted);
+  margin: 0 0 12px;
+}
+.bash-help{
+  padding:14px;
+  border:1px dashed rgba(255,255,255,.25);
+  border-radius:14px;
+  background: rgba(255,255,255,.03);
+}
+
+.bash-grid{
+  display:grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap:14px;
+}
+@media (max-width: 1020px){
+  .bash-grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 740px){
+  .bash-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 420px){
+  .bash-grid{ grid-template-columns: 1fr; }
+}
+
+.bash-card{
+  border:1px solid var(--bash-border);
+  background: linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.02));
+  border-radius:16px;
+  overflow:hidden;
+  cursor:pointer;
+  transition: transform .12s ease, border-color .12s ease;
+}
+.bash-card:hover{
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,.20);
+}
+.bash-photo{
+  background:#000;
   aspect-ratio: 4/5;
-  object-fit: cover;
-  background: #000;
+  width:100%;
+  display:block;
+  object-fit:cover;
+}
+.bash-card-body{
+  padding:12px 12px 14px;
+}
+.bash-name{
+  margin:0 0 6px;
+  font-weight:800;
+  letter-spacing:.02em;
+  text-transform: uppercase;
+}
+.bash-meta{
+  margin:0;
+  color:var(--bash-muted);
+  font-size:13px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.bash-pill{
+  border:1px solid var(--bash-border);
+  background: rgba(0,0,0,.25);
+  padding:4px 8px;
+  border-radius:999px;
+  font-size:12px;
 }
 
+/* Modal */
+.bash-modal{
+  position:fixed;
+  inset:0;
+  display:none;
+  z-index: 9999;
+}
+.bash-modal.is-open{ display:block; }
+.bash-modal-backdrop{
+  position:absolute;
+  inset:0;
+  background: rgba(0,0,0,.72);
+}
+.bash-modal-card{
+  position:relative;
+  width:min(980px, calc(100% - 26px));
+  margin: 26px auto;
+  border:1px solid var(--bash-border);
+  background: var(--bash-panel);
+  border-radius:18px;
+  overflow:hidden;
+}
+.bash-modal-close{
+  position:absolute;
+  top:10px;
+  right:12px;
+  width:40px;
+  height:40px;
+  border-radius:999px;
+  border:1px solid var(--bash-border);
+  background: rgba(255,255,255,.05);
+  color:var(--bash-text);
+  font-size:24px;
+  cursor:pointer;
+  z-index:2;
+}
+.bash-modal-body{
+  padding:18px;
+}
+.bash-modal-top{
+  display:grid;
+  grid-template-columns: 300px 1fr;
+  gap:18px;
+}
+@media (max-width: 860px){
+  .bash-modal-top{ grid-template-columns: 1fr; }
+}
+.bash-modal-photo{
+  width:100%;
+  aspect-ratio:4/5;
+  object-fit:cover;
+  border-radius:14px;
+  background:#000;
+  border:1px solid var(--bash-border);
+}
+.bash-h2{
+  margin:0 0 8px;
+  font-size:24px;
+  text-transform:uppercase;
+}
+.bash-small{
+  color:var(--bash-muted);
+  margin:0 0 10px;
+  line-height: 1.45;
+}
+.bash-links a{
+  color:#fff;
+  text-decoration:none;
+  border-bottom:1px solid rgba(255,255,255,.25);
+}
 
