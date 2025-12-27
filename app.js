@@ -1,7 +1,7 @@
 (() => {
   // ====== SET THESE URLs ======
   // Published CSV endpoints (public). Paste your links here.
-  const CURRENT_SHEET_CSV_URL = "PASTE_CURRENT_CSV_URL_HERE";
+  const CURRENT_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-yUyMl6_JKF5v88KQniCPdzHfg26pZmFE7jbnIKsScNmqlpYYJVJWfkWNBmOFOolKwhMZSwfHVU0W/pub?gid=0&single=true&output=csv";
   const ALUMNI_SHEET_CSV_URL  = ""; // optional (leave "" if you don't have alumni)
 
   const $ = (sel) => document.querySelector(sel);
