@@ -1,34 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>BASH TV – Fighters</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
+body {
+  margin: 0;
+  background: #070707;
+  color: #fff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
 
-<section class="bash-fighters" id="bash-fighters-app">
-  <h1 class="bash-title">Fighters</h1>
-  <div class="bash-controls">
-    <input id="bash-search" placeholder="Search fighters…" />
-    <select id="bash-sport">
-      <option value="all">All Sports</option>
-      <option value="boxing">Boxing</option>
-      <option value="mma">MMA</option>
-    </select>
-    <select id="bash-weight">
-      <option value="all">All Weights</option>
-      <option value="heavyweight">Heavyweight</option>
-      <option value="lightheavyweight">Light Heavyweight</option>
-      <option value="middleweight">Middleweight</option>
-    </select>
-  </div>
+.bash-title {
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin: 24px;
+}
 
-  <div id="bash-grid" class="bash-grid"></div>
-</section>
+.bash-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px,1fr));
+  gap: 14px;
+  padding: 24px;
+}
 
-<script src="app.js"></script>
-</body>
-</html>
+.bash-card {
+  background: #111;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.bash-photo {
+  width: 100%;
+  aspect-ratio: 4/5;
+  object-fit: cover;
+  background: #000;
+}
+
 
