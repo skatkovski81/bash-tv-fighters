@@ -1,1 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BASH TV — Fighters</title>
+  <meta name="description" content="BASH TV fighters roster" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+
+  <main id="bash-fighters-app" class="bash-app">
+    <header class="bash-hero">
+      <div class="bash-container">
+        <h1 class="bash-title">Fighters</h1>
+        <p class="bash-subtitle">Meet the roster. Filter by sport + weight.</p>
+
+        <div class="bash-controls" aria-label="Fighter filters">
+          <label class="bash-field">
+            <span class="bash-label">Search</span>
+            <input id="bash-search" class="bash-input" type="search" placeholder="Search fighters..." />
+          </label>
+
+          <label class="bash-field">
+            <span class="bash-label">Sport</span>
+            <select id="bash-sport" class="bash-select">
+              <option value="all">All</option>
+              <option value="boxing">Boxing</option>
+              <option value="mma">MMA</option>
+            </select>
+          </label>
+
+          <label class="bash-field">
+            <span class="bash-label">Weight</span>
+            <select id="bash-weight" class="bash-select">
+              <option value="all">All</option>
+              <option value="heavyweight">Heavyweight</option>
+              <option value="cruiserweight">Cruiserweight</option>
+              <option value="lightheavyweight">Light Heavyweight</option>
+              <option value="supermiddleweight">Super Middleweight</option>
+              <option value="middleweight">Middleweight</option>
+              <option value="welterweight">Welterweight</option>
+              <option value="superlightweight">Super Lightweight</option>
+              <option value="lightweight">Lightweight</option>
+              <option value="superfeatherweight">Super Featherweight</option>
+              <option value="featherweight">Featherweight</option>
+              <option value="bantamweight">Bantamweight</option>
+              <option value="flyweight">Flyweight</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </header>
+
+    <section class="bash-section">
+      <div class="bash-container">
+        <div class="bash-tabs" role="tablist" aria-label="Roster tabs">
+          <button class="bash-tab is-active" id="bash-tab-current" type="button" role="tab" aria-selected="true">
+            Current
+          </button>
+          <button class="bash-tab" id="bash-tab-alumni" type="button" role="tab" aria-selected="false">
+            Alumni
+          </button>
+        </div>
+
+        <div id="bash-status" class="bash-status" aria-live="polite"></div>
+
+        <div class="bash-grid-wrap">
+          <div id="bash-grid" class="bash-grid" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal -->
+    <div id="bash-modal" class="bash-modal" aria-hidden="true">
+      <div class="bash-modal-backdrop" data-close="1"></div>
+      <div class="bash-modal-card" role="dialog" aria-modal="true" aria-label="Fighter details">
+        <button class="bash-modal-close" type="button" aria-label="Close" data-close="1">×</button>
+        <div id="bash-modal-body" class="bash-modal-body"></div>
+      </div>
+    </div>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
 
