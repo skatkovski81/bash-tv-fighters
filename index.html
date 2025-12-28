@@ -3,18 +3,15 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <title>BASH TV — Fighters</title>
   <meta name="description" content="BASH TV fighters roster" />
 
-  <link rel="stylesheet" href="./styles.css" />
+  <!-- IMPORTANT: keep filenames lowercase and in the same folder as index.html -->
+  <link rel="stylesheet" href="./styles.css?v=5" />
 </head>
-
 <body>
 
   <main id="bash-fighters-app" class="bash-app">
-
-    <!-- HERO / FILTERS -->
     <header class="bash-hero">
       <div class="bash-container">
         <h1 class="bash-title">Fighters</h1>
@@ -37,6 +34,7 @@
 
           <label class="bash-field">
             <span class="bash-label">Weight</span>
+            <!-- IMPORTANT: values should be normalized keys (letters only, lowercase, no spaces) -->
             <select id="bash-weight" class="bash-select">
               <option value="all">All</option>
               <option value="heavyweight">Heavyweight</option>
@@ -57,41 +55,35 @@
       </div>
     </header>
 
-    <!-- ROSTER -->
     <section class="bash-section">
       <div class="bash-container">
-
-        <div class="bash-tabs" role="tablist">
-          <button id="bash-tab-current" class="bash-tab is-active" type="button">
+        <div class="bash-tabs" role="tablist" aria-label="Roster tabs">
+          <button class="bash-tab is-active" id="bash-tab-current" type="button" role="tab" aria-selected="true">
             Current
           </button>
-          <button id="bash-tab-alumni" class="bash-tab" type="button">
+          <button class="bash-tab" id="bash-tab-alumni" type="button" role="tab" aria-selected="false">
             Alumni
           </button>
         </div>
 
-        <div id="bash-status" class="bash-status"></div>
+        <div id="bash-status" class="bash-status" aria-live="polite"></div>
 
         <div class="bash-grid-wrap">
-          <div id="bash-grid" class="bash-grid"></div>
+          <div id="bash-grid" class="bash-grid" aria-live="polite"></div>
         </div>
-
       </div>
     </section>
 
-    <!-- MODAL -->
+    <!-- Modal -->
     <div id="bash-modal" class="bash-modal" aria-hidden="true">
       <div class="bash-modal-backdrop" data-close="1"></div>
-      <div class="bash-modal-card" role="dialog" aria-modal="true">
-        <button class="bash-modal-close" data-close="1">×</button>
+      <div class="bash-modal-card" role="dialog" aria-modal="true" aria-label="Fighter details">
+        <button class="bash-modal-close" type="button" aria-label="Close" data-close="1">×</button>
         <div id="bash-modal-body" class="bash-modal-body"></div>
       </div>
     </div>
-
   </main>
 
-  <!-- Vanilla JS app -->
-  <script src="./app.js"></script>
-
+  <script src="./app.js?v=5"></script>
 </body>
 </html>
