@@ -1,9 +1,8 @@
 (() => {
   // ====== SET THESE URLs ======
-  // Published CSV endpoints (public). Paste your links here.
   const CURRENT_SHEET_CSV_URL =
     "https://docs.google.com/spreadsheets/d/e/2PACX-1vS-yUyMl6_JKF5v88KQniCPdzHfg26pZmFE7jbnIKsScNmqlpYYJVJWfkWNBmOFOolKwhMZSwfHVU0W/pub?gid=0&single=true&output=csv";
-  const ALUMNI_SHEET_CSV_URL = ""; // optional (leave "" if you don't have alumni)
+  const ALUMNI_SHEET_CSV_URL = ""; // optional
 
   const $ = (sel) => document.querySelector(sel);
 
@@ -69,13 +68,11 @@
   }
 
   async function fetchTextWithFallback(url) {
-    // Direct first
     try {
       const r1 = await fetch(url, { cache: "no-store" });
       if (r1.ok) return await r1.text();
     } catch (e) {}
 
-    // Proxy fallback (helps if a network blocks direct Google fetch)
     const proxied = "https://corsproxy.io/?" + encodeURIComponent(url);
     const r2 = await fetch(proxied, { cache: "no-store" });
     if (!r2.ok) throw new Error("Failed to fetch CSV (direct + proxy).");
@@ -101,12 +98,9 @@
     return rows
       .slice(1)
       .map((r) => {
-        const normWeight = ((r[idx("weight")] || "").trim())
-          .toLowerCase()
-          .replace(/\s+/g, "");
+        const normWeight = ((r[idx("weight")] || "").trim()).toLowerCase().replace(/\s+/g, "");
         const normSport = ((r[idx("sport")] || "boxing").trim()).toLowerCase();
 
-        // Safe id for click lookup
         const id =
           (r[idx("id")] || "").trim() ||
           (crypto?.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2));
@@ -156,10 +150,9 @@
 
   function prettyWeight(w) {
     if (!w) return "";
-    return w
-      .replace(/(super|light|middle|heavy|cruiser)(?=[a-z])/g, "$1 ")
-      .replace(/\s+/g, " ")
-      .trim();
+    return w.replace(/(super|light|middle|heavy|cruiser)(?=[a-z])/g, "$1 ")
+            .replace(/\s+/g, " ")
+            .trim();
   }
 
   // ===== Embed helpers (Option B) =====
@@ -171,7 +164,6 @@
     const u = normalizeUrl(url);
     if (!u) return "";
 
-    // YouTube
     const yt = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
     if (yt && yt[1]) {
       const id = yt[1];
@@ -184,7 +176,6 @@
       ></iframe>`;
     }
 
-    // Vimeo
     const vm = u.match(/vimeo\.com\/(\d+)/);
     if (vm && vm[1]) {
       const id = vm[1];
@@ -197,7 +188,6 @@
       ></iframe>`;
     }
 
-    // Already-embed URLs
     if (u.includes("youtube.com/embed/") || u.includes("player.vimeo.com/video/")) {
       return `<iframe
         src="${escapeHtml(u)}"
@@ -214,16 +204,11 @@
   function sanitizeEmbedHtml(html) {
     const s = (html || "").trim();
     if (!s) return "";
-    const lower = s.toLowerCase();
+    if (s.toLowerCase().includes("<iframe")) return s;
 
-    // Keep iframe embeds (from your sheet) as-is
-    if (lower.includes("<iframe")) return s;
-
-    // If someone pasted a URL instead of iframe, try to embed it
     const maybe = getEmbedHtmlFromUrl(s);
     if (maybe) return maybe;
 
-    // fallback link
     return `<div class="bash-embed-fallback"><a href="${escapeHtml(s)}" target="_blank" rel="noopener">Open</a></div>`;
   }
 
@@ -260,9 +245,7 @@
       .filter((f) => matches(f, filters));
 
     els.grid.innerHTML =
-      list
-        .map(
-          (f) => `
+      list.map((f) => `
         <article class="bash-card" data-id="${f.id}">
           <img class="bash-photo" src="${f.photo || ""}" alt="${escapeHtml(f.name || "Fighter")}" loading="lazy" />
           <div class="bash-card-body">
@@ -275,16 +258,13 @@
             </p>
           </div>
         </article>
-      `
-        )
-        .join("") || `<div class="bash-help">No fighters found for these filters.</div>`;
+      `).join("") || `<div class="bash-help">No fighters found for these filters.</div>`;
   }
 
   // ===== Tabbed modal =====
   function openModal(f) {
     const tabs = [];
 
-    // PROFILE
     const profileHtml = `
       <div class="bash-modal-top">
         <img class="bash-modal-photo" src="${f.photo || ""}" alt="${escapeHtml(f.name)}" />
@@ -316,7 +296,6 @@
     `;
     tabs.push({ id: "profile", label: "Profile", html: profileHtml });
 
-    // FEATURED (embed HTML from sheet)
     if (f.featuredEmbed && f.featuredEmbed.trim()) {
       tabs.push({
         id: "featured",
@@ -331,7 +310,6 @@
       });
     }
 
-    // REPLAYS (embed from URLs)
     if (Array.isArray(f.replayUrls) && f.replayUrls.length) {
       tabs.push({
         id: "replays",
@@ -346,7 +324,6 @@
       });
     }
 
-    // BOUTS (embed from URLs)
     if (Array.isArray(f.boutUrls) && f.boutUrls.length) {
       tabs.push({
         id: "bouts",
@@ -361,32 +338,23 @@
       });
     }
 
-    // Render tabs UI
-    const tabButtons = tabs
-      .map(
-        (t, idx) => `
-        <button
-          class="bash-modal-tab ${idx === 0 ? "is-active" : ""}"
-          type="button"
-          data-tab="${t.id}"
-          aria-selected="${idx === 0 ? "true" : "false"}"
-          role="tab"
-        >${escapeHtml(t.label)}</button>
-      `
-      )
-      .join("");
+    const tabButtons = tabs.map((t, idx) => `
+      <button
+        class="bash-modal-tab ${idx === 0 ? "is-active" : ""}"
+        type="button"
+        data-tab="${t.id}"
+        aria-selected="${idx === 0 ? "true" : "false"}"
+        role="tab"
+      >${escapeHtml(t.label)}</button>
+    `).join("");
 
-    const tabPanels = tabs
-      .map(
-        (t, idx) => `
-        <section
-          class="bash-modal-panel ${idx === 0 ? "is-active" : ""}"
-          data-panel="${t.id}"
-          role="tabpanel"
-        >${t.html}</section>
-      `
-      )
-      .join("");
+    const tabPanels = tabs.map((t, idx) => `
+      <section
+        class="bash-modal-panel ${idx === 0 ? "is-active" : ""}"
+        data-panel="${t.id}"
+        role="tabpanel"
+      >${t.html}</section>
+    `).join("");
 
     els.modalBody.innerHTML = `
       <div class="bash-modal-tabs" role="tablist" aria-label="Fighter tabs">
@@ -397,7 +365,7 @@
       </div>
     `;
 
-    // Tab handler (scoped)
+    // scoped tab handler
     const tabsEl = els.modalBody.querySelector(".bash-modal-tabs");
     tabsEl.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-tab]");
@@ -416,6 +384,9 @@
       });
     });
 
+    // ✅ lock background scroll
+    document.body.classList.add("bash-lock");
+
     els.modal.classList.add("is-open");
     els.modal.setAttribute("aria-hidden", "false");
   }
@@ -423,6 +394,12 @@
   function closeModal() {
     els.modal.classList.remove("is-open");
     els.modal.setAttribute("aria-hidden", "true");
+
+    // ✅ unlock background scroll
+    document.body.classList.remove("bash-lock");
+
+    // (optional) clear to stop any playing embeds/audio
+    els.modalBody.innerHTML = "";
   }
 
   // ===== Events =====
@@ -437,6 +414,26 @@
   els.modal.addEventListener("click", (e) => {
     if (e.target?.dataset?.close) closeModal();
   });
+
+  // ✅ ESC closes modal
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && els.modal.classList.contains("is-open")) closeModal();
+  });
+
+  // ✅ Prevent scroll bleed to background on wheel/touchpad
+  // (If modal body can scroll, keep scroll inside it.)
+  els.modal.addEventListener("wheel", (e) => {
+    if (!els.modal.classList.contains("is-open")) return;
+    const scroller = els.modalBody;
+    if (!scroller) return;
+
+    const atTop = scroller.scrollTop <= 0;
+    const atBottom = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 1;
+
+    if ((atTop && e.deltaY < 0) || (atBottom && e.deltaY > 0)) {
+      e.preventDefault();
+    }
+  }, { passive: false });
 
   [els.search, els.sport, els.weight].forEach((el) => {
     el.addEventListener("input", render);
