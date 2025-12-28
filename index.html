@@ -3,13 +3,18 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <title>BASH TV — Fighters</title>
   <meta name="description" content="BASH TV fighters roster" />
+
   <link rel="stylesheet" href="./styles.css" />
 </head>
 
 <body>
+
   <main id="bash-fighters-app" class="bash-app">
+
+    <!-- HERO / FILTERS -->
     <header class="bash-hero">
       <div class="bash-container">
         <h1 class="bash-title">Fighters</h1>
@@ -52,42 +57,41 @@
       </div>
     </header>
 
+    <!-- ROSTER -->
     <section class="bash-section">
       <div class="bash-container">
-        <div class="bash-tabs" role="tablist" aria-label="Roster tabs">
-          <button class="bash-tab is-active" id="bash-tab-current" type="button" role="tab" aria-selected="true">
+
+        <div class="bash-tabs" role="tablist">
+          <button id="bash-tab-current" class="bash-tab is-active" type="button">
             Current
           </button>
-          <button class="bash-tab" id="bash-tab-alumni" type="button" role="tab" aria-selected="false">
+          <button id="bash-tab-alumni" class="bash-tab" type="button">
             Alumni
           </button>
         </div>
 
-        <div id="bash-status" class="bash-status" aria-live="polite"></div>
+        <div id="bash-status" class="bash-status"></div>
 
         <div class="bash-grid-wrap">
-          <div id="bash-grid" class="bash-grid" aria-live="polite"></div>
+          <div id="bash-grid" class="bash-grid"></div>
         </div>
+
       </div>
     </section>
 
-    <!-- Modal -->
+    <!-- MODAL -->
     <div id="bash-modal" class="bash-modal" aria-hidden="true">
       <div class="bash-modal-backdrop" data-close="1"></div>
-      <div class="bash-modal-card" role="dialog" aria-modal="true" aria-label="Fighter details">
-        <button class="bash-modal-close" type="button" aria-label="Close" data-close="1">×</button>
+      <div class="bash-modal-card" role="dialog" aria-modal="true">
+        <button class="bash-modal-close" data-close="1">×</button>
         <div id="bash-modal-body" class="bash-modal-body"></div>
       </div>
     </div>
+
   </main>
 
-  <!-- ✅ Add React 18 runtime (fixes createRoot undefined) -->
-  <script defer src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script defer src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Vanilla JS app -->
+  <script src="./app.js"></script>
 
-  <!-- Your app -->
-  <script defer src="./app.js"></script>
 </body>
 </html>
-
-
