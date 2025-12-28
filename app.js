@@ -79,6 +79,15 @@
     return await r2.text();
   }
 
+  // Normalize to a consistent key for filtering, while keeping the original label for display
+  function normalizeWeightKey(label) {
+    return (label || "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "")      // remove spaces
+      .replace(/[^a-z]/g, "");  // keep letters only
+  }
+
   async function loadSheet(csvUrl, forcedStatus) {
     if (!csvUrl) return [];
     const text = await fetchTextWithFallback(csvUrl);
@@ -98,7 +107,9 @@
     return rows
       .slice(1)
       .map((r) => {
-        const normWeight = ((r[idx("weight")] || "").trim()).toLowerCase().replace(/\s+/g, "");
+        const rawWeight = (r[idx("weight")] || "").trim();
+        const weightKey = normalizeWeightKey(rawWeight);
+
         const normSport = ((r[idx("sport")] || "boxing").trim()).toLowerCase();
 
         const id =
@@ -112,7 +123,11 @@
           photo: (r[idx("photo")] || "").trim(),
           record: (r[idx("record")] || "").trim(),
           sport: normSport,
-          weight: normWeight,
+
+          // ✅ display vs filter
+          weightLabel: rawWeight,   // show exactly as typed in Sheet (Lightweights)
+          weightKey,                // used for filtering (lightweights)
+
           country: (r[idx("country")] || "").trim(),
           age: (r[idx("age")] || "").trim(),
           igHandle: (r[idx("igHandle")] || "").trim(),
@@ -136,23 +151,21 @@
     return {
       q: (els.search.value || "").trim().toLowerCase(),
       sport: els.sport.value || "all",
-      weight: els.weight.value || "all",
+      weight: els.weight.value || "all", // this is your filter dropdown value (normalized like "lightweight" or "superlightweight")
     };
   }
 
   function matches(f, { q, sport, weight }) {
     if (sport !== "all" && f.sport !== sport) return false;
-    if (weight !== "all" && f.weight !== weight) return false;
-    if (!q) return true;
-    const hay = `${f.name} ${f.record} ${f.country} ${f.weight} ${f.sport}`.toLowerCase();
-    return hay.includes(q);
-  }
 
-  function prettyWeight(w) {
-    if (!w) return "";
-    return w.replace(/(super|light|middle|heavy|cruiser)(?=[a-z])/g, "$1 ")
-            .replace(/\s+/g, " ")
-            .trim();
+    // ✅ filter uses weightKey (normalized), not the display label
+    if (weight !== "all" && f.weightKey !== weight) return false;
+
+    if (!q) return true;
+
+    // ✅ search uses the friendly label too
+    const hay = `${f.name} ${f.record} ${f.country} ${f.weightLabel} ${f.sport}`.toLowerCase();
+    return hay.includes(q);
   }
 
   // ===== Embed helpers (Option B) =====
@@ -164,6 +177,7 @@
     const u = normalizeUrl(url);
     if (!u) return "";
 
+    // YouTube
     const yt = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{6,})/);
     if (yt && yt[1]) {
       const id = yt[1];
@@ -176,6 +190,7 @@
       ></iframe>`;
     }
 
+    // Vimeo
     const vm = u.match(/vimeo\.com\/(\d+)/);
     if (vm && vm[1]) {
       const id = vm[1];
@@ -188,6 +203,7 @@
       ></iframe>`;
     }
 
+    // Already embed URLs
     if (u.includes("youtube.com/embed/") || u.includes("player.vimeo.com/video/")) {
       return `<iframe
         src="${escapeHtml(u)}"
@@ -253,7 +269,7 @@
             <p class="bash-meta">
               ${f.record ? `<span class="bash-pill">${escapeHtml(f.record)}</span>` : ""}
               ${f.sport ? `<span class="bash-pill">${escapeHtml(f.sport.toUpperCase())}</span>` : ""}
-              ${f.weight ? `<span class="bash-pill">${escapeHtml(prettyWeight(f.weight))}</span>` : ""}
+              ${f.weightLabel ? `<span class="bash-pill">${escapeHtml(f.weightLabel)}</span>` : ""}
               ${f.country ? `<span class="bash-pill">${escapeHtml(f.country)}</span>` : ""}
             </p>
           </div>
@@ -274,7 +290,7 @@
           <p class="bash-small">
             ${f.record ? `${escapeHtml(f.record)} • ` : ""}
             ${f.sport ? `${escapeHtml(f.sport.toUpperCase())} • ` : ""}
-            ${f.weight ? `${escapeHtml(prettyWeight(f.weight))}` : ""}
+            ${f.weightLabel ? `${escapeHtml(f.weightLabel)}` : ""}
           </p>
 
           <p class="bash-small">
@@ -398,7 +414,7 @@
     // ✅ unlock background scroll
     document.body.classList.remove("bash-lock");
 
-    // (optional) clear to stop any playing embeds/audio
+    // stop any playing embeds/audio
     els.modalBody.innerHTML = "";
   }
 
@@ -415,13 +431,12 @@
     if (e.target?.dataset?.close) closeModal();
   });
 
-  // ✅ ESC closes modal
+  // ESC closes modal
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && els.modal.classList.contains("is-open")) closeModal();
   });
 
-  // ✅ Prevent scroll bleed to background on wheel/touchpad
-  // (If modal body can scroll, keep scroll inside it.)
+  // Prevent scroll bleed to background
   els.modal.addEventListener("wheel", (e) => {
     if (!els.modal.classList.contains("is-open")) return;
     const scroller = els.modalBody;
