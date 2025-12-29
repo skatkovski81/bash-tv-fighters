@@ -9,18 +9,18 @@
   --bash-maroon:#370000;
 }
 
-/* SAFETY: prevent iframe viewport overflow */
+/* SAFETY: prevent iframe + iOS scroll cutoff */
 html, body{
   width: 100%;
-  height: auto;            /* <-- key fix */
+  height: auto;
   min-height: 100%;
   overflow-x: hidden;
-  overflow-y: auto;        /* <-- ensure vertical scroll is allowed */
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-
 *{ box-sizing:border-box; }
+
 body{
   margin:0;
   background:var(--bash-bg);
@@ -249,13 +249,12 @@ body{
   border-bottom:1px solid rgba(255,255,255,.25);
 }
 
-/* Lock background scrolling when modal open */
+/* Lock background scrolling when modal open (iOS-safe) */
 body.bash-lock{
   overflow: hidden;
   position: fixed;
   width: 100%;
 }
-
 
 /* Modal tabs */
 .bash-modal-tabs{
