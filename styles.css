@@ -11,9 +11,14 @@
 
 /* SAFETY: prevent iframe viewport overflow */
 html, body{
-  width:100%;
-  overflow-x:hidden;
+  width: 100%;
+  height: auto;            /* <-- key fix */
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;        /* <-- ensure vertical scroll is allowed */
+  -webkit-overflow-scrolling: touch;
 }
+
 
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
