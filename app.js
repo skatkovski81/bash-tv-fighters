@@ -24,26 +24,54 @@
     els.status.innerHTML = msg ? `<div class="bash-help">${msg}</div>` : "";
   };
 
-  function escapeHtml(s){
-    return (s || "").replace(/[&<>"']/g, m => ({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  function escapeHtml(s) {
+    return (s || "").replace(/[&<>"']/g, (m) => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;",
     }[m]));
   }
 
+  // ----------------------------
+  // Height posting helper (child -> parent iframe)
+  // ----------------------------
+  function postHeightSoon() {
+    try {
+      // Prefer the window.BASH_POST_HEIGHT injected by index.html, if present
+      if (window.BASH_POST_HEIGHT) {
+        window.BASH_POST_HEIGHT();
+        return;
+      }
+      // Fallback: do a quick post ourselves
+      requestAnimationFrame(() => {
+        const b = document.body;
+        const e = document.documentElement;
+        const h = Math.max(
+          b.scrollHeight, e.scrollHeight,
+          b.offsetHeight, e.offsetHeight,
+          b.clientHeight, e.clientHeight
+        );
+        window.parent.postMessage({ type: "BASH_FIGHTERS_HEIGHT", height: h }, "*");
+      });
+    } catch (e) {}
+  }
+
   // CSV parser (supports quoted commas/newlines)
-  function csvToRows(text){
+  function csvToRows(text) {
     const rows = [];
     let row = [], cur = "", inQ = false;
 
-    for (let i = 0; i < text.length; i++){
+    for (let i = 0; i < text.length; i++) {
       const ch = text[i];
-      const next = text[i+1];
+      const next = text[i + 1];
 
-      if (ch === '"' && inQ && next === '"'){ cur += '"'; i++; continue; }
-      if (ch === '"'){ inQ = !inQ; continue; }
+      if (ch === '"' && inQ && next === '"') { cur += '"'; i++; continue; }
+      if (ch === '"') { inQ = !inQ; continue; }
 
-      if (!inQ && ch === ","){ row.push(cur); cur = ""; continue; }
-      if (!inQ && (ch === "\n" || ch === "\r")){
+      if (!inQ && ch === ",") { row.push(cur); cur = ""; continue; }
+      if (!inQ && (ch === "\n" || ch === "\r")) {
         if (ch === "\r" && next === "\n") i++;
         row.push(cur); rows.push(row);
         row = []; cur = "";
@@ -53,36 +81,37 @@
     }
     row.push(cur);
     rows.push(row);
+
     return rows.filter(r => r.some(c => (c || "").trim() !== ""));
   }
 
-  function parseVideoUrls(s){
-    if(!s) return [];
+  function parseVideoUrls(s) {
+    if (!s) return [];
     return s.split(/[\n,]/g).map(x => x.trim()).filter(Boolean);
   }
 
-  async function fetchTextWithFallback(url){
-    try{
-      const r1 = await fetch(url, { cache:"no-store" });
+  async function fetchTextWithFallback(url) {
+    try {
+      const r1 = await fetch(url, { cache: "no-store" });
       if (r1.ok) return await r1.text();
-    }catch(e){}
+    } catch (e) {}
 
     const proxied = "https://corsproxy.io/?" + encodeURIComponent(url);
-    const r2 = await fetch(proxied, { cache:"no-store" });
-    if(!r2.ok) throw new Error("Failed to fetch CSV (direct + proxy).");
+    const r2 = await fetch(proxied, { cache: "no-store" });
+    if (!r2.ok) throw new Error("Failed to fetch CSV (direct + proxy).");
     return await r2.text();
   }
 
-  function normalizeWeightKey(label){
+  function normalizeWeightKey(label) {
     return (label || "")
       .trim()
       .toLowerCase()
-      .replace(/\s+/g,"")
-      .replace(/[^a-z]/g,"");
+      .replace(/\s+/g, "")
+      .replace(/[^a-z]/g, "");
   }
 
-  async function loadSheet(csvUrl, forcedStatus){
-    if(!csvUrl) return [];
+  async function loadSheet(csvUrl, forcedStatus) {
+    if (!csvUrl) return [];
     const text = await fetchTextWithFallback(csvUrl);
     const rows = csvToRows(text);
     if (rows.length < 2) return [];
@@ -90,7 +119,7 @@
     const headers = rows[0].map(h => (h || "").trim());
     const idx = (h) => headers.indexOf(h);
 
-    if (idx("name") === -1){
+    if (idx("name") === -1) {
       console.warn("Sheet headers found:", headers);
       throw new Error("Sheet headers must include at least: name");
     }
@@ -98,14 +127,15 @@
     return rows.slice(1).map(r => {
       const rawWeight = (r[idx("weight")] || "").trim();
       return {
-        id: (r[idx("id")] || "").trim() || (crypto?.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2)),
+        id: (r[idx("id")] || "").trim() ||
+          (crypto?.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2)),
         status: (forcedStatus || (r[idx("status")] || "").trim().toLowerCase() || "current"),
         name: (r[idx("name")] || "").trim(),
         photo: (r[idx("photo")] || "").trim(),
         record: (r[idx("record")] || "").trim(),
         sport: ((r[idx("sport")] || "boxing").trim()).toLowerCase(),
 
-        // ✅ display exactly as typed + key for filtering
+        // display exactly as typed + key for filtering
         weightLabel: rawWeight,
         weightKey: normalizeWeightKey(rawWeight),
 
@@ -125,7 +155,7 @@
   let allFighters = [];
   let activeTab = "current";
 
-  function getFilters(){
+  function getFilters() {
     return {
       q: (els.search.value || "").trim().toLowerCase(),
       sport: (els.sport.value || "all"),
@@ -133,7 +163,7 @@
     };
   }
 
-  function matches(f, {q, sport, weight}){
+  function matches(f, { q, sport, weight }) {
     if (sport !== "all" && f.sport !== sport) return false;
     if (weight !== "all" && f.weightKey !== weight) return false;
     if (!q) return true;
@@ -142,9 +172,9 @@
   }
 
   // Embeds
-  function normalizeUrl(u){ try { return (u||"").trim(); } catch(e){ return ""; } }
+  function normalizeUrl(u) { try { return (u || "").trim(); } catch (e) { return ""; } }
 
-  function getEmbedHtmlFromUrl(url){
+  function getEmbedHtmlFromUrl(url) {
     const u = normalizeUrl(url);
     if (!u) return "";
 
@@ -169,7 +199,7 @@
     return "";
   }
 
-  function sanitizeEmbedHtml(html){
+  function sanitizeEmbedHtml(html) {
     const s = (html || "").trim();
     if (!s) return "";
     if (s.toLowerCase().includes("<iframe")) return s;
@@ -180,7 +210,7 @@
     return `<div class="bash-embed-fallback"><a href="${escapeHtml(s)}" target="_blank" rel="noopener">Open</a></div>`;
   }
 
-  function renderEmbedCard(url, label){
+  function renderEmbedCard(url, label) {
     const u = normalizeUrl(url);
     if (!u) return "";
     const iframe = getEmbedHtmlFromUrl(u);
@@ -198,43 +228,60 @@
     </article>`;
   }
 
-  function render(){
+  function attachImageHeightWatch() {
+    // when images finish loading, height can grow—post again
+    els.grid.querySelectorAll("img").forEach(img => {
+      if (img.complete) return;
+      img.addEventListener("load", postHeightSoon, { once: true });
+      img.addEventListener("error", postHeightSoon, { once: true });
+    });
+  }
+
+  function render() {
     const filters = getFilters();
+
     const list = allFighters
       .filter(f => (activeTab === "current" ? f.status !== "alumni" : f.status === "alumni"))
       .filter(f => matches(f, filters));
 
-    els.grid.innerHTML = list.map(f => `
-      <article class="bash-card" data-id="${f.id}">
-        <img class="bash-photo" src="${f.photo || ""}" alt="${escapeHtml(f.name || "Fighter")}" loading="lazy" />
-        <div class="bash-card-body">
-          <h3 class="bash-name">${escapeHtml(f.name)}</h3>
-          <p class="bash-meta">
-            ${f.record ? `<span class="bash-pill">${escapeHtml(f.record)}</span>` : ""}
-            ${f.sport ? `<span class="bash-pill">${escapeHtml(f.sport.toUpperCase())}</span>` : ""}
-            ${f.weightLabel ? `<span class="bash-pill">${escapeHtml(f.weightLabel)}</span>` : ""}
-            ${f.country ? `<span class="bash-pill">${escapeHtml(f.country)}</span>` : ""}
-          </p>
-        </div>
-      </article>
-    `).join("") || `<div class="bash-help">No fighters found for these filters.</div>`;
+    els.grid.innerHTML =
+      (list.map(f => `
+        <article class="bash-card" data-id="${f.id}">
+          <img class="bash-photo" src="${f.photo || ""}" alt="${escapeHtml(f.name || "Fighter")}" loading="lazy" />
+          <div class="bash-card-body">
+            <h3 class="bash-name">${escapeHtml(f.name)}</h3>
+            <p class="bash-meta">
+              ${f.record ? `<span class="bash-pill">${escapeHtml(f.record)}</span>` : ""}
+              ${f.sport ? `<span class="bash-pill">${escapeHtml(f.sport.toUpperCase())}</span>` : ""}
+              ${f.weightLabel ? `<span class="bash-pill">${escapeHtml(f.weightLabel)}</span>` : ""}
+              ${f.country ? `<span class="bash-pill">${escapeHtml(f.country)}</span>` : ""}
+            </p>
+          </div>
+        </article>
+      `).join("")) || `<div class="bash-help">No fighters found for these filters.</div>`;
+
+    // ✅ IMPORTANT: run AFTER the DOM is updated
+    requestAnimationFrame(() => {
+      postHeightSoon();
+      attachImageHeightWatch();
+    });
   }
 
   // ✅ iOS-safe body scroll lock helpers
   let _scrollY = 0;
-  function lockBodyScroll(){
+  function lockBodyScroll() {
     _scrollY = window.scrollY || document.documentElement.scrollTop || 0;
     document.body.style.top = `-${_scrollY}px`;
     document.body.classList.add("bash-lock");
   }
-  function unlockBodyScroll(){
+  function unlockBodyScroll() {
     document.body.classList.remove("bash-lock");
     document.body.style.top = "";
     window.scrollTo(0, _scrollY || 0);
     _scrollY = 0;
   }
 
-  function openModal(f){
+  function openModal(f) {
     const tabs = [];
 
     const profileHtml = `
@@ -264,39 +311,45 @@
         </div>
       </div>
     `;
-    tabs.push({ id:"profile", label:"Profile", html: profileHtml });
+    tabs.push({ id: "profile", label: "Profile", html: profileHtml });
 
-    if (f.featuredEmbed && f.featuredEmbed.trim()){
-      tabs.push({ id:"featured", label:"Featured", html: `
-        <div class="bash-panel"><div class="bash-embed-wrap">${sanitizeEmbedHtml(f.featuredEmbed)}</div></div>
-      `});
+    if (f.featuredEmbed && f.featuredEmbed.trim()) {
+      tabs.push({
+        id: "featured",
+        label: "Featured",
+        html: `<div class="bash-panel"><div class="bash-embed-wrap">${sanitizeEmbedHtml(f.featuredEmbed)}</div></div>`
+      });
     }
 
-    if (f.replayUrls?.length){
-      tabs.push({ id:"replays", label:`Replays (${f.replayUrls.length})`, html: `
-        <div class="bash-panel"><div class="bash-embed-grid">
-          ${f.replayUrls.map((u,i)=>renderEmbedCard(u, `Replay ${i+1}`)).join("")}
-        </div></div>
-      `});
+    if (f.replayUrls?.length) {
+      tabs.push({
+        id: "replays",
+        label: `Replays (${f.replayUrls.length})`,
+        html: `<div class="bash-panel"><div class="bash-embed-grid">
+          ${f.replayUrls.map((u, i) => renderEmbedCard(u, `Replay ${i + 1}`)).join("")}
+        </div></div>`
+      });
     }
 
-    if (f.boutUrls?.length){
-      tabs.push({ id:"bouts", label:`Bouts (${f.boutUrls.length})`, html: `
-        <div class="bash-panel"><div class="bash-embed-grid">
-          ${f.boutUrls.map((u,i)=>renderEmbedCard(u, `Bout ${i+1}`)).join("")}
-        </div></div>
-      `});
+    if (f.boutUrls?.length) {
+      tabs.push({
+        id: "bouts",
+        label: `Bouts (${f.boutUrls.length})`,
+        html: `<div class="bash-panel"><div class="bash-embed-grid">
+          ${f.boutUrls.map((u, i) => renderEmbedCard(u, `Bout ${i + 1}`)).join("")}
+        </div></div>`
+      });
     }
 
     const tabButtons = tabs.map((t, idx) => `
-      <button class="bash-modal-tab ${idx===0 ? "is-active":""}" type="button"
-        data-tab="${t.id}" aria-selected="${idx===0 ? "true":"false"}" role="tab">
+      <button class="bash-modal-tab ${idx === 0 ? "is-active" : ""}" type="button"
+        data-tab="${t.id}" aria-selected="${idx === 0 ? "true" : "false"}" role="tab">
         ${escapeHtml(t.label)}
       </button>
     `).join("");
 
     const tabPanels = tabs.map((t, idx) => `
-      <section class="bash-modal-panel ${idx===0 ? "is-active":""}" data-panel="${t.id}" role="tabpanel">
+      <section class="bash-modal-panel ${idx === 0 ? "is-active" : ""}" data-panel="${t.id}" role="tabpanel">
         ${t.html}
       </section>
     `).join("");
@@ -305,40 +358,43 @@
 
     els.modalBody.querySelector(".bash-modal-tabs").addEventListener("click", (e) => {
       const btn = e.target.closest("[data-tab]");
-      if(!btn) return;
+      if (!btn) return;
       const id = btn.getAttribute("data-tab");
 
       els.modalBody.querySelectorAll(".bash-modal-tab").forEach(b => {
         const on = b.getAttribute("data-tab") === id;
         b.classList.toggle("is-active", on);
-        b.setAttribute("aria-selected", on ? "true":"false");
+        b.setAttribute("aria-selected", on ? "true" : "false");
       });
 
       els.modalBody.querySelectorAll(".bash-modal-panel").forEach(p => {
         p.classList.toggle("is-active", p.getAttribute("data-panel") === id);
       });
+
+      postHeightSoon();
     });
 
-    // ✅ use iOS-safe lock
     lockBodyScroll();
     els.modal.classList.add("is-open");
-    els.modal.setAttribute("aria-hidden","false");
+    els.modal.setAttribute("aria-hidden", "false");
+
+    requestAnimationFrame(postHeightSoon);
   }
 
-  function closeModal(){
+  function closeModal() {
     els.modal.classList.remove("is-open");
-    els.modal.setAttribute("aria-hidden","true");
-    // ✅ use iOS-safe unlock
+    els.modal.setAttribute("aria-hidden", "true");
     unlockBodyScroll();
     els.modalBody.innerHTML = "";
+    requestAnimationFrame(postHeightSoon);
   }
 
   // Events
   els.grid.addEventListener("click", (e) => {
     const card = e.target.closest(".bash-card");
-    if(!card) return;
+    if (!card) return;
     const f = allFighters.find(x => x.id === card.getAttribute("data-id"));
-    if(f) openModal(f);
+    if (f) openModal(f);
   });
 
   els.modal.addEventListener("click", (e) => {
@@ -349,9 +405,16 @@
     if (e.key === "Escape" && els.modal.classList.contains("is-open")) closeModal();
   });
 
+  // Optional: light debounce so typing doesn’t spam render/height
+  let t = null;
+  function requestRender() {
+    clearTimeout(t);
+    t = setTimeout(render, 60);
+  }
+
   [els.search, els.sport, els.weight].forEach(el => {
-    el.addEventListener("input", render);
-    el.addEventListener("change", render);
+    el.addEventListener("input", requestRender);
+    el.addEventListener("change", requestRender);
   });
 
   els.tabCurrent.addEventListener("click", () => {
@@ -368,18 +431,21 @@
     render();
   });
 
-  (async function init(){
-    try{
+  (async function init() {
+    try {
       setStatus("Loading fighters…");
       const current = await loadSheet(CURRENT_SHEET_CSV_URL, "current");
-      const alumni  = ALUMNI_SHEET_CSV_URL ? await loadSheet(ALUMNI_SHEET_CSV_URL, "alumni") : [];
+      const alumni = ALUMNI_SHEET_CSV_URL ? await loadSheet(ALUMNI_SHEET_CSV_URL, "alumni") : [];
       allFighters = [...current, ...alumni];
       setStatus("");
       render();
-    }catch(err){
+      setTimeout(postHeightSoon, 400);
+      setTimeout(postHeightSoon, 1200);
+    } catch (err) {
       console.error(err);
       setStatus("Could not load fighters from Google Sheet. Make sure the CSV URL is published + public.");
       els.grid.innerHTML = "";
+      postHeightSoon();
     }
   })();
 })();
