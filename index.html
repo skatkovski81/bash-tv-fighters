@@ -88,27 +88,57 @@
     <script src="./app.js?v=6"></script>
 
   <!-- Tell parent iframe (WordPress) our height so it can resize and avoid mobile scroll freeze -->
-  <script>
-  (function () {
-    function postHeight() {
-      var h = Math.max(
-        document.body.scrollHeight,
-        document.documentElement.scrollHeight
-      );
+ <script>
+(function () {
+  var raf = null;
+
+  function getDocHeight(){
+    // use multiple measurements to avoid under-reporting on Safari/iframes
+    var b = document.body;
+    var e = document.documentElement;
+    return Math.max(
+      b.scrollHeight, e.scrollHeight,
+      b.offsetHeight, e.offsetHeight,
+      b.clientHeight, e.clientHeight
+    );
+  }
+
+  function postHeight(){
+    if (raf) cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(function(){
+      var h = getDocHeight();
       window.parent.postMessage({ type: "BASH_FIGHTERS_HEIGHT", height: h }, "*");
-    }
+    });
+  }
 
-    window.addEventListener("load", postHeight);
-    window.addEventListener("resize", postHeight);
+  // expose to app.js so it can call after render
+  window.BASH_POST_HEIGHT = postHeight;
 
-    if (window.ResizeObserver) {
-      var ro = new ResizeObserver(postHeight);
-      ro.observe(document.documentElement);
-    } else {
-      setInterval(postHeight, 1000);
-    }
-  })();
-  </script>
+  window.addEventListener("load", postHeight);
+  window.addEventListener("resize", postHeight);
+
+  // Parent can request height any time
+  window.addEventListener("message", function(e){
+    if(e.data && e.data.type === "BASH_PARENT_READY") postHeight();
+  });
+
+  // Watch DOM changes (grid content changes, modal open/close, etc.)
+  if (window.MutationObserver) {
+    var mo = new MutationObserver(function(){ postHeight(); });
+    mo.observe(document.documentElement, { childList:true, subtree:true, attributes:true });
+  }
+
+  // Watch size changes too
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(function(){ postHeight(); });
+    ro.observe(document.documentElement);
+  }
+
+  // last-resort keepalive (covers late-loading images)
+  setInterval(postHeight, 1500);
+})();
+</script>
+
 </body>
 </html>
 
