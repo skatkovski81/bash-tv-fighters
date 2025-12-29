@@ -85,6 +85,30 @@
     </div>
   </main>
 
-  <script src="./app.js?v=5"></script>
+    <script src="./app.js?v=5"></script>
+
+  <!-- Tell parent iframe (WordPress) our height so it can resize and avoid mobile scroll freeze -->
+  <script>
+  (function () {
+    function postHeight() {
+      var h = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight
+      );
+      window.parent.postMessage({ type: "BASH_FIGHTERS_HEIGHT", height: h }, "*");
+    }
+
+    window.addEventListener("load", postHeight);
+    window.addEventListener("resize", postHeight);
+
+    if (window.ResizeObserver) {
+      var ro = new ResizeObserver(postHeight);
+      ro.observe(document.documentElement);
+    } else {
+      setInterval(postHeight, 1000);
+    }
+  })();
+  </script>
 </body>
 </html>
+
