@@ -251,7 +251,12 @@ body{
 }
 
 /* Lock background scrolling when modal open */
-body.bash-lock{ overflow:hidden; }
+body.bash-lock{
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
 
 /* Modal tabs */
 .bash-modal-tabs{
