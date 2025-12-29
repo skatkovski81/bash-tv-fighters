@@ -9,13 +9,13 @@
   --bash-maroon:#370000;
 }
 
-/* SAFETY: prevent iframe + iOS scroll cutoff */
+/* ✅ SAFETY: prevent iframe + iOS scroll cutoff */
 html, body{
   width: 100%;
-  height: auto;
+  height: auto;              /* IMPORTANT */
   min-height: 100%;
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: auto;          /* IMPORTANT */
   -webkit-overflow-scrolling: touch;
 }
 
@@ -192,7 +192,7 @@ body{
   background: var(--bash-panel);
   border-radius:18px;
   overflow:hidden;
-  max-height: calc(100vh - 52px);
+  max-height: calc(100dvh - 52px); /* ✅ better than 100vh on mobile */
   display:flex;
   flex-direction:column;
 }
@@ -215,7 +215,7 @@ body{
   overflow:auto;
   -webkit-overflow-scrolling:touch;
   overscroll-behavior:contain;
-  max-height: calc(100vh - 110px);
+  max-height: calc(100dvh - 110px); /* ✅ */
 }
 .bash-modal-top{
   display:grid;
