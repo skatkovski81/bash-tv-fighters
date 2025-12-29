@@ -220,6 +220,20 @@
     `).join("") || `<div class="bash-help">No fighters found for these filters.</div>`;
   }
 
+  // ✅ iOS-safe body scroll lock helpers
+  let _scrollY = 0;
+  function lockBodyScroll(){
+    _scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    document.body.style.top = `-${_scrollY}px`;
+    document.body.classList.add("bash-lock");
+  }
+  function unlockBodyScroll(){
+    document.body.classList.remove("bash-lock");
+    document.body.style.top = "";
+    window.scrollTo(0, _scrollY || 0);
+    _scrollY = 0;
+  }
+
   function openModal(f){
     const tabs = [];
 
@@ -305,7 +319,8 @@
       });
     });
 
-    document.body.classList.add("bash-lock");
+    // ✅ use iOS-safe lock
+    lockBodyScroll();
     els.modal.classList.add("is-open");
     els.modal.setAttribute("aria-hidden","false");
   }
@@ -313,7 +328,8 @@
   function closeModal(){
     els.modal.classList.remove("is-open");
     els.modal.setAttribute("aria-hidden","true");
-    document.body.classList.remove("bash-lock");
+    // ✅ use iOS-safe unlock
+    unlockBodyScroll();
     els.modalBody.innerHTML = "";
   }
 
